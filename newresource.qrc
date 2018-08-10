@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RCC version="1.0">
+    <qresource>
+        <!--
+                List files that you want to include into resources like this:
+                <file>images/copy.png</file>
+        -->
+        <file>images/seedburo_logo.png</file>
+        <file>images/home_button.png</file>
+        <file>images/power_button.png</file>
+        <file>images/reset_button.png</file>
+        <file>images/stop_button.png</file>
+        <file>images/Logo.png</file>
+        <file>images/start_button.png</file>
+        <file>images/continue_button.png</file>
+        <file>images/pause_button.png</file>
+        <file>images/about_button.png</file>
+        <file>images/sleep_button.png</file>
+        <file>images/settings_button.png</file>
+
+    </qresource>
+</RCC>
