@@ -60,7 +60,7 @@ CountingScreen::CountingScreen() {
     widget.btnContinue->setStyleSheet("background-color:black;");
     widget.lblMode->setStyleSheet("background-color:black; color:white;");
     widget.lblMode->setText("901C Seed Carousel");
-    widget.btnWait->setStyleSheet("background-color:white;");
+    //widget.btnWait->setStyleSheet("background-color:white;");
     widget.btnCarouselPrint->setStyleSheet("background-color:white; color:black;");
     widget.btnPrint->setStyleSheet("background-color:white; color:black;");
     // Add images to the buttons ///////////////////////////////////////////////
@@ -123,7 +123,7 @@ CountingScreen::CountingScreen() {
     connect(widget.btnContinue, SIGNAL(pressed()), this, SLOT(PauseContinue()));
     connect(widget.btnCarouselPrint, SIGNAL(pressed()), this, SLOT(PrintForCarousel()));
     connect(widget.btnPrint, SIGNAL(pressed()), this, SLOT(PrintFromFile()));
-    connect(widget.btnWait, SIGNAL(pressed()), this, SLOT(SetWaitOnOff()));
+    //connect(widget.btnWait, SIGNAL(pressed()), this, SLOT(SetWaitOnOff()));
     connect(widget.btnBagNo, SIGNAL(pressed()), this, SLOT(CallSetBagNumber()));
     // Read the counter's settings from the database.
     QString result= m_DbTest.LoadCounterConfig(m_SeedCounter);
@@ -149,7 +149,7 @@ CountingScreen::CountingScreen() {
     CountTimer=true;
     ZeroCount();
     m_CheckSeeds=false;
-    WaitOnOff=false;
+   //WaitOnOff=false;
     m_Rotary.GetPositionFromFile();
     // Create a timer to refresh the count.
     QTimer *countRefreshtimer = new QTimer(this);
@@ -168,7 +168,7 @@ void CountingScreen::ExitToHomeWindow()
     m_Motor.SetSpeed(0);    // Shut off the motor.    close();
     CountingStatus = false;
     ZeroCount();
-    m_Rotary.RotaryStop();   //reset rotary motor to home position
+    //m_Rotary.RotaryStop();   //reset rotary motor to home position
     close();
 }
 
@@ -238,6 +238,39 @@ void CountingScreen::DisplayNumPad()
 }
 
 void CountingScreen::DisplayMotorNumPad(){
+    
+    bool s=m_Sensor.TestRightSensor();
+         if (s==false)
+         {
+            QMessageBox msgBox;
+            msgBox.setStyleSheet("QPushButton {"" background-color: white;" " border-radius: 10px;"" font: bold 14px;" " min-width: 8em;" " padding: 6px;""}" "QLabel {"" font: bold 18px;""}");
+            msgBox.setWindowTitle("Error");
+            msgBox.setText("No Chute Detected");
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.addButton(QMessageBox::Cancel);
+            connect( msgBox.button(QMessageBox::Ok), SIGNAL(clicked()) ,this, SLOT(SensorStatus()));
+            connect( msgBox.button(QMessageBox::Cancel), SIGNAL(clicked()) ,this, SLOT(PauseContinue()));
+            msgBox.exec();   
+         }
+        if (s==true)
+        {    
+        bool sl=m_Sensor.TestLeftSensor();
+         if (sl==false)
+         {
+           QMessageBox msgBox;
+           msgBox.setStyleSheet("QPushButton {"" background-color: white;" " border-radius: 10px;"" font: bold 14px;" " min-width: 8em;" " padding: 6px;""}" "QLabel {"" font: bold 18px;""}");
+           msgBox.setWindowTitle("Error");
+            msgBox.setText("No Bag Detected");
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.addButton(QMessageBox::Cancel);
+            connect( msgBox.button(QMessageBox::Ok), SIGNAL(clicked()) ,this, SLOT(SensorStatus()));
+            connect( msgBox.button(QMessageBox::Cancel), SIGNAL(clicked()) ,this, SLOT(PauseContinue()));
+            msgBox.exec();   
+         }
+        }
+    bool sl=m_Sensor.TestLeftSensor();
+    if (s==true && sl==true)
+    {
     m_MotorNumPad.setWindowFlags(Qt::FramelessWindowHint);
     m_MotorNumPad.setModal(true);
     m_MotorNumPad.move(300,100);
@@ -258,9 +291,49 @@ void CountingScreen::DisplayMotorNumPad(){
         widget.lblMotorSliderValue->setText(QString::number(m_SetMotorSpeed));
         widget.lblInfo->setText("Press START to count");
     }
+    }
 }
 
 void CountingScreen::StartMotor(){
+    
+    bool s=m_Sensor.TestRightSensor();
+         if (s==true)
+         {
+           
+            ManualLoadUnloa();
+            
+        
+            //QMessageBox msgBox;
+            //msgBox.setStyleSheet("QPushButton {"" background-color: white;" " border-radius: 10px;"" font: bold 14px;" " min-width: 8em;" " padding: 6px;""}" "QLabel {"" font: bold 18px;""}");
+            //msgBox.setWindowTitle("Error");
+            //msgBox.setText("No Chute Detected!! Brought it back");
+           // msgBox.setStandardButtons(QMessageBox::Ok);
+            //msgBox.addButton(QMessageBox::Cancel);
+            //connect( msgBox.button(QMessageBox::Ok), SIGNAL(clicked()) ,this, SLOT(StartMotor()));
+            //connect( msgBox.button(QMessageBox::Cancel), SIGNAL(clicked()) ,this, SLOT(StartMotor()));
+            //msgBox.setAutoClose(true);
+            //msgBox.setTimeout(3);
+            //msgBox.exec(); 
+            StartMotor();
+            
+         }
+    //sleep(1);
+        if (s==false)
+        {    
+        bool sl=m_Sensor.TestLeftSensor();
+         if (sl==false)
+         {
+           QMessageBox msgBox;
+           msgBox.setStyleSheet("QPushButton {"" background-color: white;" " border-radius: 10px;"" font: bold 14px;" " min-width: 8em;" " padding: 6px;""}" "QLabel {"" font: bold 18px;""}");
+           msgBox.setWindowTitle("Error");
+            msgBox.setText("No Bag Detected");
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.addButton(QMessageBox::Cancel);
+            connect( msgBox.button(QMessageBox::Ok), SIGNAL(clicked()) ,this, SLOT(SensorStatus()));
+            connect( msgBox.button(QMessageBox::Cancel), SIGNAL(clicked()) ,this, SLOT(PauseContinue()));
+            msgBox.exec();   
+         }
+        }
     SensorStatus();
     if(m_SetMotorSpeed == 0)
     {
@@ -293,12 +366,104 @@ void CountingScreen::StartMotor(){
         widget.lblInfo->setText("Counting...");
         ZeroCount();
         ClearBagNumber();
-        m_Rotary.RotaryStop();
+        //m_Rotary.RotaryStop();
         usleep(1000000);
         ChangeMotorSpeed(m_SetMotorSpeed);        
     }
 } 
+void CountingScreen::ManualLoadUnload(){
+   
+    
+    if(m_RotateToLoad.CheckConn())
+        m_RotateToLoad.Rotate45();
+    else
+    {
+        QMessageBox msgBox;
+        msgBox.setStyleSheet("QPushButton {"" background-color: white;" " border-radius: 10px;"" font: bold 14px;" " min-width: 8em;" " padding: 6px;""}" "QLabel {"" font: bold 18px;""}");
+        msgBox.setWindowTitle("Counting Error");
+        msgBox.setText("Error! Check Carousel Motor Connection");
+        msgBox.setStandardButtons(QMessageBox::Ok);  
+        msgBox.exec();
+    }
+    //sleep(1.8);
+    //bool s=m_Sensor.TestRightSensor();
+         //if (s==false)
+         //{
+           
+           
+       // m_RotateToLoad.Rotate45();
+    
+             
+           // QMessageBox msgBox;
+            //msgBox.setStyleSheet("QPushButton {"" background-color: white;" " border-radius: 10px;"" font: bold 14px;" " min-width: 8em;" " padding: 6px;""}" "QLabel {"" font: bold 18px;""}");
+            //msgBox.setWindowTitle("Error");
+            //msgBox.setText("No Chute Detected!! Bringing it back");
+            
+            //msgBox.setStandardButtons(QMessageBox::Ok);
+            //msgBox.addButton(QMessageBox::Cancel);
+            //connect( msgBox.button(QMessageBox::Ok), SIGNAL(clicked()) ,this, SLOT(SensorStatus()));
+            //connect( msgBox.button(QMessageBox::Cancel), SIGNAL(clicked()) ,this, SLOT(PauseContinue()));
+            //msgBox.setAutoClose(true);
+            //msgBox.setTimeout(3);
+            //msgBox.exec(); 
+            
+            
+         //}
+        
+        
+}
 
+void CountingScreen::ManualLoadUnloa(){
+   
+    
+    if(m_RotateToLoad.CheckConn())
+        m_RotateToLoad.Rotate4();
+       sleep(1.2);
+    
+     bool s=m_Sensor.TestRightSensor();
+     
+     if (s==true)
+         {
+           
+            ManualLoadUnloa();
+            }
+     
+   if(m_RotateToLoad.CheckConn()==false)
+    {
+        QMessageBox msgBox;
+        msgBox.setStyleSheet("QPushButton {"" background-color: white;" " border-radius: 10px;"" font: bold 14px;" " min-width: 8em;" " padding: 6px;""}" "QLabel {"" font: bold 18px;""}");
+        msgBox.setWindowTitle("Counting Error");
+        msgBox.setText("Error! Check Carousel Motor Connection");
+        msgBox.setStandardButtons(QMessageBox::Ok);  
+        msgBox.exec();
+    }   
+    //sleep(1.8);
+    //bool s=m_Sensor.TestRightSensor();
+         //if (s==false)
+         //{
+           
+           
+       // m_RotateToLoad.Rotate45();
+    
+             
+           // QMessageBox msgBox;
+            //msgBox.setStyleSheet("QPushButton {"" background-color: white;" " border-radius: 10px;"" font: bold 14px;" " min-width: 8em;" " padding: 6px;""}" "QLabel {"" font: bold 18px;""}");
+            //msgBox.setWindowTitle("Error");
+            //msgBox.setText("No Chute Detected!! Bringing it back");
+            
+            //msgBox.setStandardButtons(QMessageBox::Ok);
+            //msgBox.addButton(QMessageBox::Cancel);
+            //connect( msgBox.button(QMessageBox::Ok), SIGNAL(clicked()) ,this, SLOT(SensorStatus()));
+            //connect( msgBox.button(QMessageBox::Cancel), SIGNAL(clicked()) ,this, SLOT(PauseContinue()));
+            //msgBox.setAutoClose(true);
+            //msgBox.setTimeout(3);
+            //msgBox.exec(); 
+            
+            
+         //}
+        
+        
+}
 void CountingScreen::ClearBagNumber()
 {
     m_BagNumber=0;
@@ -306,10 +471,31 @@ void CountingScreen::ClearBagNumber()
 void CountingScreen::CheckBagNumber(){
     if (GetBagNumber() <  m_SetMaxBagNumber)
      {      
-        usleep(500000);
+        usleep(150);
         int ActualBag = GetBagNumber()+1; 
         m_Rotary.RotateToNextChute(ActualBag);
-        usleep(1500000);
+        bool s=m_Sensor.TestRightSensor();
+         if (s==true)
+         {
+           
+            ManualLoadUnloa();
+            
+        
+          /*QMessageBox msgBox;
+            msgBox.setStyleSheet("QPushButton {"" background-color: white;" " border-radius: 10px;"" font: bold 14px;" " min-width: 8em;" " padding: 6px;""}" "QLabel {"" font: bold 18px;""}");
+            msgBox.setWindowTitle("Error");
+            msgBox.setText("No Chute Detected!! Brought it back");
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.addButton(QMessageBox::Cancel);
+            connect( msgBox.button(QMessageBox::Ok), SIGNAL(clicked()) ,this, SLOT(StartMotor()));
+            connect( msgBox.button(QMessageBox::Cancel), SIGNAL(clicked()) ,this, SLOT(StartMotor()));
+            //msgBox.setAutoClose(true);
+            //msgBox.setTimeout(3);
+            msgBox.exec();*/
+            StartMotor();
+            
+         } 
+        usleep(900);
         ZeroCount();
         SensorStatus();
         if(CountingStatus) ChangeMotorSpeed(globalMotorSpeed);// restart vibratory motor
@@ -325,7 +511,7 @@ void CountingScreen::CheckBagNumber(){
         msg->show();
         widget.lblInfo->setText("Done!");
         usleep(1500000);
-        m_Rotary.RotaryStop();   //reset rotary motor to home position
+        //m_Rotary.RotaryStop();   //reset rotary motor to home position
         ZeroCount();
         CountingStatus = false;
         checkRefreshtimer->blockSignals(true);
@@ -446,7 +632,7 @@ void CountingScreen :: UpdateCount()
    {  
         CountTimer=false;
         m_Motor.SetSpeed(0);  // Shut off the motor.  
-        QTimer::singleShot(2000,this,SLOT(CallBagCheck()));//usleep(1000000);       
+        QTimer::singleShot(2000,this,SLOT(CallBagCheck()));//usleep(1000000); 
     }
     //decrease motor speed only once
     if(CountingStatus && CountTimer && !m_MotorStatus && (m_SeedCounter.GetCount() >= (m_Setpoint- GetReducedSetPoint())))
@@ -471,7 +657,7 @@ void CountingScreen :: UpdateCount()
     }
 }
 
-void CountingScreen::CallBagCheck()
+ void CountingScreen::CallBagCheck()
 {
     IncPrintBagNo();
     SaveDataToTxtFile();
@@ -480,7 +666,7 @@ void CountingScreen::CallBagCheck()
     if(m_SetMaxBagNumber <= 8) { CheckBagNumber();  }  
     else { CheckForMoreBagNumber(); } 
     CountTimer=true;
-    m_MotorStatus = false; 
+    m_MotorStatus = false;
 }
 
 int CountingScreen::GetReducedSetPoint()
@@ -558,7 +744,7 @@ void CountingScreen::StopCounting(){
     widget.lblInfo->setText("STOPPED");
     usleep(1500000);
 	m_Motor.SetSpeed(0);
-    m_Rotary.RotaryStop();   //reset rotary motor to home position
+    //m_Rotary.RotaryStop();   //reset rotary motor to home position
 }
 
 void CountingScreen::PauseContinue(){
@@ -701,7 +887,7 @@ void CountingScreen::InitializeCVariables(int a,int b,int c, bool d, bool w) //b
         checkRefreshtimer->start(C_CHECK_TIMER_INTERVAL);
         checkRefreshtimer->blockSignals(true);
     }
-    CallWaitOnOff(w); 
+    //CallWaitOnOff(w); 
 }
 int * CountingScreen::GetCVariables()
 {
@@ -727,7 +913,7 @@ void CountingScreen::CheckForMoreBagNumber(){
         msg->show();
         widget.lblInfo->setText("Done!");
         usleep(1500000);
-        m_Rotary.RotaryStop();   //reset rotary motor to home position
+        //m_Rotary.RotaryStop();   //reset rotary motor to home position
         ZeroCount();
         checkRefreshtimer->blockSignals(true);
         CountingStatus = false;
@@ -737,41 +923,62 @@ void CountingScreen::CheckForMoreBagNumber(){
         ClearBagNumber();
         usleep(1500000);
         m_Rotary.SetZeroPosition();
-        if(WaitOnOff)
-        {
+        //if(WaitOnOff)
+        //{
             //pause till ok
-            ZeroCount();
-            widget.lblInfo->setText("Paused");
-            CountingStatus = false;
-            PauseStatus = true;
-            CountTimer=false;
-            checkRefreshtimer->blockSignals(true);
-            QPixmap pix5(":/images/pause_button.png");
-            QIcon icon5(pix5);
-            widget.btnContinue->setIcon(icon5);
-            widget.btnContinue->setIconSize(widget.btnContinue->rect().size());
-            widget.btnContinue->setFixedSize(widget.btnContinue->rect().size());      
-            QMessageBox msgBox;
-            msgBox.setStyleSheet("QPushButton {"" background-color: white;" " border-radius: 10px;"" font: bold 14px;" " min-width: 8em;" " padding: 6px;""}" "QLabel {"" font: bold 18px;""}");
-            msgBox.setText("Please Replace Bags\nPress PAUSE To Continue");
-            msgBox.setStandardButtons(QMessageBox::Ok); 
+            //ZeroCount();
+            //widget.lblInfo->setText("Paused");
+            //CountingStatus = false;
+            //PauseStatus = true;
+            //CountTimer=false;
+            //checkRefreshtimer->blockSignals(true);
+            //QPixmap pix5(":/images/pause_button.png");
+            //QIcon icon5(pix5);
+            //widget.btnContinue->setIcon(icon5);
+            //widget.btnContinue->setIconSize(widget.btnContinue->rect().size());
+            //widget.btnContinue->setFixedSize(widget.btnContinue->rect().size());      
+            //QMessageBox msgBox;
+            //msgBox.setStyleSheet("QPushButton {"" background-color: white;" " border-radius: 10px;"" font: bold 14px;" " min-width: 8em;" " padding: 6px;""}" "QLabel {"" font: bold 18px;""}");
+            //msgBox.setText("Please Replace Bags\nPress PAUSE To Continue");
+           // msgBox.setStandardButtons(QMessageBox::Ok); 
             //connect( msgBox.button(QMessageBox::Ok), SIGNAL(clicked()) ,this, SLOT(PauseContinue()));
-            msgBox.exec();
-        }
-        else {
+            //msgBox.exec();
+        //}
+        //else {
             usleep(1000000);
             SensorStatus();
             CheckRotaryMotor();
             ZeroCount();
             if(CountingStatus) ChangeMotorSpeed(globalMotorSpeed); 
-        }
+        //}
     }
     else
     {
-        usleep(500000);
+        usleep(150);
         int ActualBag = GetBagNumber()+1;
         m_Rotary.RotateToNextChute(ActualBag);
-        usleep(1500000);
+        bool s=m_Sensor.TestRightSensor();
+         if (s==true)
+         {
+           
+            ManualLoadUnloa();
+            
+        
+          /*QMessageBox msgBox;
+            msgBox.setStyleSheet("QPushButton {"" background-color: white;" " border-radius: 10px;"" font: bold 14px;" " min-width: 8em;" " padding: 6px;""}" "QLabel {"" font: bold 18px;""}");
+            msgBox.setWindowTitle("Error");
+            msgBox.setText("No Chute Detected!! Brought it back");
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.addButton(QMessageBox::Cancel);
+            connect( msgBox.button(QMessageBox::Ok), SIGNAL(clicked()) ,this, SLOT(StartMotor()));
+            connect( msgBox.button(QMessageBox::Cancel), SIGNAL(clicked()) ,this, SLOT(StartMotor()));
+            //msgBox.setAutoClose(true);
+            //msgBox.setTimeout(3);
+            msgBox.exec();*/ 
+            StartMotor();
+            
+         }
+        usleep(900);
         SensorStatus();
         ZeroCount();
         if(CountingStatus) ChangeMotorSpeed(globalMotorSpeed); 
@@ -823,6 +1030,7 @@ void CountingScreen::SetBagMode(bool c)
     BagOnOff=c;
 }
 void CountingScreen::SensorStatus(){
+    //sleep(3);
     if(BagOnOff==true)
     {
         bool s=m_Sensor.TestLeftSensor();
@@ -868,23 +1076,23 @@ void CountingScreen::SetWaitOnOff()
 {
     if(WaitOnOff){
         WaitOnOff=false;
-        widget.btnWait->setStyleSheet("background-color:red;");
+        //widget.btnWait->setStyleSheet("background-color:red;");
     }
     else
     {
         WaitOnOff=true;
-        widget.btnWait->setStyleSheet("background-color:white;");
+        //widget.btnWait->setStyleSheet("background-color:white;");
     }
 }
 void CountingScreen::CallWaitOnOff(bool s)
 {
     WaitOnOff=s;
     if(WaitOnOff){
-        widget.btnWait->setStyleSheet("background-color:white;");       
+        //widget.btnWait->setStyleSheet("background-color:white;");       
     }
     else
     {
-        widget.btnWait->setStyleSheet("background-color:red;");
+        //widget.btnWait->setStyleSheet("background-color:red;");
     }
     
 }
@@ -909,3 +1117,4 @@ void CountingScreen::CheckRotaryMotor()
         msgBox.exec();
     }
 }
+
