@@ -1,2 +1,2 @@
-# AgPoint
-Seed Counter
+# AgPoint Precision
+Seed Counter Project
